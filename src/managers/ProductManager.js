@@ -3,168 +3,59 @@ const fs = require('fs');
 class ProductManager {
     constructor(path) {
         this.path = path;
-        this.products = [];
-        this.nextId = 1;
-
-        this.init();
     }
 
-    init() {
-        try {
-            if (fs.existsSync(this.path)) {
-                const data = fs.readFileSync(this.path, 'utf-8');
-
-                if (!data.trim()) {
-                    fs.writeFileSync(this.path, JSON.stringify([], null, 2));
-                    this.carts = [];
-                    this.nextId = 1;
-                    return;
-                }
-
-                this.carts = JSON.parse(data);
-
-                if (this.carts.length > 0) {
-                    this.nextId = Math.max(...this.carts.map(c => c.id)) + 1;
-                }
-            } else {
-                fs.writeFileSync(this.path, JSON.stringify([], null, 2));
-                this.carts = [];
-                this.nextId = 1;
-            }
-        } catch (error) {
-            console.error('Error al inicializar CartManager:', error);
-            this.carts = [];
-            this.nextId = 1;
-        }
-    }
-
-
-    saveToFile() {
-        try {
-            fs.writeFileSync(this.path, JSON.stringify(this.products, null, 2));
-            return true;
-        } catch (error) {
-            console.error('Error al guardar en archivo:', error);
-            return false;
-        }
-    }
-
-    addProduct(product) {
-        try {
-            const requiredFields = ['title', 'description', 'code', 'price', 'stock', 'category'];
-            for (const field of requiredFields) {
-                if (product[field] === undefined || product[field] === null) {
-                    throw new Error(`El campo '${field}' es requerido`);
-                }
-            }
-
-            const codeExists = this.products.some(p => p.code === product.code);
-            if (codeExists) {
-                throw new Error(`Ya existe un producto con el código '${product.code}'`);
-            }
-            const newProduct = {
-                id: this.nextId++,
-                title: product.title,
-                description: product.description,
-                code: product.code,
-                price: product.price,
-                status: product.status !== undefined ? product.status : true,
-                stock: product.stock,
-                category: product.category,
-                thumbnails: product.thumbnails || []
-            };
-
-
-            this.products.push(newProduct);
-            this.saveToFile();
-
-            return newProduct;
-        } catch (error) {
-            throw error;
-        }
-    }
-    getProducts() {
-        try {
-            const data = fs.readFileSync(this.path, 'utf-8');
-            this.products = JSON.parse(data);
-            return this.products;
-        } catch (error) {
-            console.error('Error al leer productos:', error);
+    async getProducts() {
+        if (!fs.existsSync(this.path)) {
             return [];
         }
+        const data = await fs.promises.readFile(this.path, 'utf-8');
+        return JSON.parse(data || '[]');
     }
 
-    getProductById(id) {
-        try {
-            const data = fs.readFileSync(this.path, 'utf-8');
-            this.products = JSON.parse(data);
+    async addProduct(product) {
+        const requiredFields = ['title', 'description', 'price', 'thumbnail', 'code', 'stock'];
 
-            const product = this.products.find(p => p.id === parseInt(id));
-
-            if (!product) {
-                return null;
+        for (const field of requiredFields) {
+            if (
+                product[field] === undefined ||
+                product[field] === null ||
+                product[field] === ''
+            ) {
+                throw new Error(`El campo '${field}' es requerido`);
             }
-
-            return product;
-        } catch (error) {
-            throw error;
         }
+
+        const products = await this.getProducts();
+
+        const newProduct = {
+            id: products.length > 0 ? products[products.length - 1].id + 1 : 1,
+            title: product.title,
+            description: product.description,
+            price: product.price,
+            thumbnail: product.thumbnail,
+            code: product.code,
+            stock: product.stock
+        };
+
+        products.push(newProduct);
+
+        await fs.promises.writeFile(this.path, JSON.stringify(products, null, 2));
+
+        return newProduct;
     }
 
-    updateProduct(id, updates) {
-        try {
-            const data = fs.readFileSync(this.path, 'utf-8');
-            this.products = JSON.parse(data);
+    async deleteProduct(id) {
+        const products = await this.getProducts();
+        const filteredProducts = products.filter(p => p.id !== Number(id));
 
-            const index = this.products.findIndex(p => p.id === parseInt(id));
-
-            if (index === -1) {
-                return null;
-            }
-
-            if (updates.id) {
-                delete updates.id;
-            }
-            if (updates.code) {
-                const codeExists = this.products.some(
-                    p => p.code === updates.code && p.id !== parseInt(id)
-                );
-                if (codeExists) {
-                    throw new Error(`Ya existe un producto con el código '${updates.code}'`);
-                }
-            }
-            this.products[index] = {
-                ...this.products[index],
-                ...updates
-            };
-
-            this.saveToFile();
-
-            return this.products[index];
-        } catch (error) {
-            throw error;
+        if (products.length === filteredProducts.length) {
+            throw new Error('Producto no encontrado');
         }
-    }
 
-    deleteProduct(id) {
-        try {
-            const data = fs.readFileSync(this.path, 'utf-8');
-            this.products = JSON.parse(data);
+        await fs.promises.writeFile(this.path, JSON.stringify(filteredProducts, null, 2));
 
-            const index = this.products.findIndex(p => p.id === parseInt(id));
-
-            if (index === -1) {
-                return null;
-            }
-
-            const deletedProduct = this.products[index];
-            this.products.splice(index, 1);
-            this.saveToFile();
-
-            return deletedProduct;
-        } catch (error) {
-            throw error;
-        }
+        return true;
     }
 }
 
