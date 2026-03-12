@@ -11,9 +11,9 @@ form.addEventListener("submit", (e) => {
         title: formData.get("title"),
         description: formData.get("description"),
         price: Number(formData.get("price")),
-        thumbnail: formData.get("thumbnail"),
         code: formData.get("code"),
-        stock: Number(formData.get("stock"))
+        stock: Number(formData.get("stock")),
+        category: formData.get("category")
     };
 
     socket.emit("newProduct", product);
@@ -28,7 +28,7 @@ socket.on("updateProducts", (products) => {
         list.innerHTML += `
             <li>
                 ${prod.title} - $${prod.price}
-                <button onclick="deleteProduct('${prod.id}')">Eliminar</button>
+                <button onclick="deleteProduct('${prod._id}')">Eliminar</button>
             </li>
         `;
     });

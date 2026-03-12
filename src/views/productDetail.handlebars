@@ -1,0 +1,35 @@
+<a href="/products"
+    style="display: inline-block; margin-bottom: 20px; color: #007bff;">← Volver
+    a productos</a>
+
+<div
+    style="border: 1px solid #ddd; padding: 30px; border-radius: 8px; max-width: 500px;">
+    <h1>{{product.title}}</h1>
+    <p><strong>Descripción:</strong> {{product.description}}</p>
+    <p><strong>Precio:</strong> ${{product.price}}</p>
+    <p><strong>Categoría:</strong> {{product.category}}</p>
+    <p><strong>Stock:</strong> {{product.stock}}</p>
+    <p><strong>Código:</strong> {{product.code}}</p>
+    <p><strong>Disponible:</strong> {{product.status}}</p>
+
+    <button onclick="addToCart('{{product._id}}')"
+        style="margin-top: 15px; padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+        Agregar al carrito
+    </button>
+</div>
+
+<script>
+async function addToCart(pid) {
+    const cartId = prompt('Ingresá el ID de tu carrito:');
+    if (!cartId) return;
+
+    const res = await fetch(`/api/carts/${cartId}/products/${pid}`, { method: 'POST' });
+    const data = await res.json();
+
+    if (data.status === 'success') {
+        alert('Producto agregado al carrito!');
+    } else {
+        alert('Error: ' + data.message);
+    }
+}
+</script>

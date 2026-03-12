@@ -4,17 +4,18 @@
     {{#each products}}
     <li>
         {{this.title}} - ${{this.price}}
-        <button onclick="deleteProduct('{{this.id}}')">Eliminar</button>
+        <button onclick="deleteProduct('{{this._id}}')">Eliminar</button>
     </li>
     {{/each}}
 </ul>
+
 <form id="productForm">
-    <input type="text" name="title" placeholder="Title" required>
-    <input type="text" name="description" placeholder="Description" required>
-    <input type="number" name="price" placeholder="Price" required>
-    <input type="text" name="thumbnail" placeholder="Thumbnail" required>
-    <input type="text" name="code" placeholder="Code" required>
+    <input type="text" name="title" placeholder="Título" required>
+    <input type="text" name="description" placeholder="Descripción" required>
+    <input type="number" name="price" placeholder="Precio" required>
+    <input type="text" name="code" placeholder="Código" required>
     <input type="number" name="stock" placeholder="Stock" required>
+    <input type="text" name="category" placeholder="Categoría" required>
     <button type="submit">Agregar</button>
 </form>
 

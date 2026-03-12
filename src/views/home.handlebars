@@ -2,6 +2,10 @@
 
 <ul>
     {{#each products}}
-    <li>{{this.title}} - ${{this.price}}</li>
+    <li>
+        <a href="/products/{{this._id}}">{{this.title}}</a> - ${{this.price}}
+    </li>
     {{/each}}
 </ul>
+
+<a href="/products">Ver todos con paginación →</a>
